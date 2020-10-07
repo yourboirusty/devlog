@@ -19,10 +19,13 @@ class LogObj(DjangoObjectType):
 
 class Query(graphene.ObjectType):
     logs = graphene.List(LogObj)
-    projects = graphene.List(LogObj)
+    projects = graphene.List(ProjectObj)
 
     def resolve_logs(self, info):
         return Log.objects.all()
 
-    def resolve_project(self, info):
+    def resolve_projects(self, info):
         return Project.objects.all()
+
+
+schema = graphene.Schema(query=Query)
