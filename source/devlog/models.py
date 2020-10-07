@@ -159,13 +159,14 @@ def log_validation(sender, instance, update_fields, **kwargs):
     author wasn't modified and author is set as project
     contributors or is an admin. Logs changes to content.
     """
-    if update_fields["author"] != instance.author:
-        raise ValidationError("Author cannot be changed.")
-    if (not update_fields["author"] in instance.project.contributors.all() or
-            not update_fields["author"] in instance.project.admin):
-        raise ValidationError("Author not in the project.")
-    if update_fields["content"]:
-        warning("Content of {0} has been modified!".format(instance))
+    if update_fields:
+        if update_fields["author"] != instance.author:
+            raise ValidationError("Author cannot be changed.")
+        if (not update_fields["author"] in instance.project.contributors.all()
+                or not update_fields["author"] in instance.project.admin):
+            raise ValidationError("Author not in the project.")
+        if update_fields["content"]:
+            warning("Content of {0} has been modified!".format(instance))
 
 
 @receiver(post_save, sender=Log)
