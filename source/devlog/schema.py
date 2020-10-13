@@ -10,11 +10,13 @@ User = get_user_model()
 class ProjectObj(DjangoObjectType):
     class Meta:
         model = Project
+        fields = ("id", "name", "admin", "contributors", "description")
 
 
 class LogObj(DjangoObjectType):
     class Meta:
         model = Log
+        fields = ("id", "author", "project", "date", "content", "important")
 
 
 class Query(graphene.ObjectType):
