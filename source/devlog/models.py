@@ -7,10 +7,10 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
-from warnings import warn as warning
+from warnings import warn
 
 if not settings.AUTH_USER_MODEL:
-    warning("AUTH_USER_MODEL not set! Devlog may not function correctly.")
+    warn("AUTH_USER_MODEL not set! Devlog may not function correctly.")
 
 
 class ContentChange(models.Model):
@@ -111,6 +111,7 @@ def project_saved(sender, instance, created, **kwargs):
     """
     if created:
         instance.slug = slugify(instance.name)
+        instance.save()
 
 
 class Log(models.Model):
@@ -160,13 +161,19 @@ def log_validation(sender, instance, update_fields, **kwargs):
     contributors or is an admin. Logs changes to content.
     """
     if update_fields:
-        if update_fields["author"] != instance.author:
-            raise ValidationError("Author cannot be changed.")
-        if (not update_fields["author"] in instance.project.contributors.all()
-                or not update_fields["author"] in instance.project.admin):
-            raise ValidationError("Author not in the project.")
-        if update_fields["content"]:
-            warning("Content of {0} has been modified!".format(instance))
+        if "project" in update_fields:
+            raise ValidationError("Project cannot be changed.")
+        if "author" in update_fields:
+            try:
+                previous = Log.objects.get(id=instance.id)
+                if instance.author != previous.author:
+                    raise ValidationError("Author cannot be changed.")
+            except Log.DoesNotExist:
+                if (instance.author not in instance.project.contributors.all()
+                   or instance.author not in instance.project.admin):
+                    raise ValidationError("Author not in the project.")
+        if "content" in update_fields:
+            warn("Content of {0} has been modified!".format(instance))
 
 
 @receiver(post_save, sender=Log)
