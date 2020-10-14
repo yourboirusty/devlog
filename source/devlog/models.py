@@ -169,11 +169,13 @@ def log_validation(sender, instance, update_fields, **kwargs):
                 if instance.author != previous.author:
                     raise ValidationError("Author cannot be changed.")
             except Log.DoesNotExist:
-                if (instance.author not in instance.project.contributors.all()
-                   or instance.author not in instance.project.admin):
-                    raise ValidationError("Author not in the project.")
+                pass
         if "content" in update_fields:
             warn("Content of {0} has been modified!".format(instance))
+
+    if (instance.author not in instance.project.contributors.all()
+       and instance.author.id != instance.project.admin.id):
+        raise ValidationError("Author not in the project.")
 
 
 @receiver(post_save, sender=Log)
